@@ -160,3 +160,12 @@ gunicorn
 psycopg2-binary
 sqlalchemy
 werkzeug
+Flask
+Flask-SQLAlchemy
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+gunicorn
+psycopg2-binary
+SQLAlchemy
+werkzeug
