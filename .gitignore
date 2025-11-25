@@ -1,45 +1,6 @@
-# Environment & Credentials
 credentials.json
 token.json
-.env
-.env.local
-SERVICE_ACCOUNT_JSON
-
-# Database
 database.db
-*.db
-
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-dist/
-eggs/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Replit specific
-.cache/
-.local/
-.upm/
-.replit
-attached_assets/
-
-# Temporary
-*.tmp
-*.log
+*.pyc
+.env
