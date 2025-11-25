@@ -151,3 +151,12 @@ zope.interface==8.1.1
 
 # Optional: PostgreSQL driver for future DATABASE_URL (Postgres) support
 psycopg2-binary==2.9.7
+flask
+flask-sqlalchemy
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+gunicorn
+psycopg2-binary
+sqlalchemy
+werkzeug
