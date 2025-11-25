@@ -1,26 +1,273 @@
-<!-- search.html -->
 {% extends "base.html" %}
 
-{% block title %}Cari: {{ query }}{% endblock %}
+{% block title %}Hasil Pencarian: {{ query }} - Manual Otomotif{% endblock %}
 
 {% block content %}
-<a href="/" class="back">← Kembali ke Beranda</a>
-<h2>Hasil Pencarian untuk: <em>{{ query }}</em></h2>
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="/">
+        <i class="fas fa-home"></i>
+        Beranda
+    </a>
+    <span class="separator"><i class="fas fa-chevron-right"></i></span>
+    <span class="current">Pencarian: "{{ query }}"</span>
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h2>
+        <i class="fas fa-search"></i>
+        Hasil Pencarian
+    </h2>
+    <div class="controls">
+        <div class="view-toggle">
+            <button class="active" onclick="toggleView('grid')">
+                <i class="fas fa-th"></i>
+            </button>
+            <button onclick="toggleView('list')">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Search Info & Filters -->
+<div style="background: var(--bg-secondary); padding: 16px 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+            <strong style="color: var(--text-primary);">{{ results|length }}</strong>
+            <span style="color: var(--text-secondary);"> hasil ditemukan untuk "</span>
+            <strong style="color: var(--primary-color);">{{ query }}</strong>
+            <span style="color: var(--text-secondary);">"</span>
+        </div>
+        {% if results|length > 0 %}
+        <div class="sort-dropdown">
+            <select onchange="sortFiles(this.value)">
+                <option value="name-asc">Nama A-Z</option>
+                <option value="name-desc">Nama Z-A</option>
+                <option value="relevance">Relevansi</option>
+            </select>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Category Filter -->
+    {% if results|length > 0 %}
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span style="color: var(--text-secondary); font-size: 13px; margin-right: 4px;">Filter Kategori:</span>
+        <button class="filter-btn active" onclick="filterCategory('all')" data-category="all">
+            <i class="fas fa-th"></i> Semua (<span id="all-count">{{ results|length }}</span>)
+        </button>
+        <button class="filter-btn" onclick="filterCategory('EBOOKS')" data-category="EBOOKS">
+            <i class="fas fa-book"></i> EBOOKS (<span id="ebooks-count">0</span>)
+        </button>
+        <button class="filter-btn" onclick="filterCategory('Pengetahuan')" data-category="Pengetahuan">
+            <i class="fas fa-brain"></i> Pengetahuan (<span id="pengetahuan-count">0</span>)
+        </button>
+        <button class="filter-btn" onclick="filterCategory('Service Manual')" data-category="Service Manual">
+            <i class="fas fa-wrench"></i> Service Manual (<span id="manual-count">0</span>)
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.filter-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.filter-btn i {
+    font-size: 12px;
+}
+
+mark {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+</style>
 
 {% if results %}
-    <ul>
+    <div class="cards-container">
     {% for item in results %}
-        <li class="{% if item['is_directory'] %}folder{% else %}file{% endif %}">
-            {% if item['is_directory'] %}
-                📁 <a href="/folder/{{ item['id'] }}">{{ item['name'] }}</a>
-            {% else %}
-                📄 <a href="/file/{{ item['id'] }}" target="_blank">{{ item['name'] }}</a>
-                <small>({{ item['size'] | filesizeformat }})</small>
-            {% endif %}
-        </li>
+        {% if item.is_directory %}
+            <div class="card folder" onclick="window.location.href='/folder/{{ item.id }}'" data-date="{{ item.modified_time }}">
+                <div class="card-icon">
+                    <i class="fas fa-folder" style="color: #f39c12;"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">{{ item.name }}</div>
+                    <div class="card-meta">
+                        <span>
+                            <i class="fas fa-tag"></i>
+                            {{ item.display_root }}
+                        </span>
+                        <span>
+                            <i class="fas fa-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card" data-date="{{ item.modified_time }}">
+                <div class="card-icon">
+                    {% if item.mime_type == 'application/pdf' %}
+                        <i class="fas fa-file-pdf" style="color: #e74c3c;"></i>
+                    {% elif 'word' in item.mime_type or item.name.endswith('.docx') %}
+                        <i class="fas fa-file-word" style="color: #2980b9;"></i>
+                    {% elif 'excel' in item.mime_type or item.name.endswith('.xlsx') %}
+                        <i class="fas fa-file-excel" style="color: #27ae60;"></i>
+                    {% else %}
+                        <i class="fas fa-file" style="color: #95a5a6;"></i>
+                    {% endif %}
+                </div>
+                <div class="card-content">
+                    <div class="card-title">{{ item.name }}</div>
+                    <div class="card-meta">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">
+                                <i class="fas fa-tag"></i>
+                                {{ item.display_root }}
+                            </div>
+                            <span>
+                                <i class="fas fa-hdd"></i>
+                                {{ item.size | filesizeformat }}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="download-btn" onclick="event.stopPropagation(); downloadFile('{{ item.id }}', '{{ item.name }}')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="download-btn" style="background: var(--primary-color);" onclick="window.open('/file/{{ item.id }}', '_blank')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     {% endfor %}
-    </ul>
+    </div>
 {% else %}
-    <p>Tidak ada hasil ditemukan untuk "<strong>{{ query }}</strong>". Coba kata kunci lain.</p>
+    <div style="text-align: center; padding: 80px 20px; background: var(--bg-secondary); border-radius: 16px; box-shadow: var(--shadow);">
+        <i class="fas fa-search" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px; opacity: 0.5;"></i>
+        <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 24px;">Tidak Ada Hasil</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 16px;">
+            Tidak ditemukan hasil untuk pencarian "{{ query }}"
+        </p>
+        <div style="background: var(--bg-primary); padding: 20px; border-radius: 12px; max-width: 500px; margin: 0 auto; text-align: left;">
+            <h4 style="color: var(--text-primary); margin-bottom: 12px; font-size: 16px;">
+                <i class="fas fa-lightbulb" style="color: #f39c12;"></i> Saran:
+            </h4>
+            <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                <li style="margin: 8px 0;"><i class="fas fa-check" style="color: var(--secondary-color); margin-right: 8px;"></i> Periksa ejaan kata kunci</li>
+                <li style="margin: 8px 0;"><i class="fas fa-check" style="color: var(--secondary-color); margin-right: 8px;"></i> Gunakan kata kunci yang lebih umum</li>
+                <li style="margin: 8px 0;"><i class="fas fa-check" style="color: var(--secondary-color); margin-right: 8px;"></i> Coba cari dengan merek atau model</li>
+                <li style="margin: 8px 0;"><i class="fas fa-check" style="color: var(--secondary-color); margin-right: 8px;"></i> Jelajahi kategori di sidebar</li>
+            </ul>
+        </div>
+        <a href="/" style="display: inline-block; margin-top: 24px; padding: 12px 24px; background: var(--primary-color); color: white; text-decoration: none; border-radius: 10px; font-weight: 500; transition: var(--transition);">
+            <i class="fas fa-home"></i> Kembali ke Beranda
+        </a>
+    </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const searchQuery = "{{ query }}";
+
+// Highlight search terms and count categories
+document.addEventListener('DOMContentLoaded', function() {
+    const titles = document.querySelectorAll('.card-title');
+    const cards = document.querySelectorAll('.cards-container .card');
+    
+    // Highlight search terms
+    titles.forEach(title => {
+        const text = title.textContent;
+        if (searchQuery) {
+            const regex = new RegExp(`(${searchQuery})`, 'gi');
+            title.innerHTML = text.replace(regex, '<mark>$1</mark>');
+        }
+    });
+    
+    // Count categories
+    let ebooksCount = 0, pengetahuanCount = 0, manualCount = 0;
+    cards.forEach(card => {
+        const categoryElem = card.querySelector('.card-meta .fa-tag');
+        if (categoryElem) {
+            const categoryText = categoryElem.parentElement.textContent;
+            if (categoryText.includes('EBOOK')) ebooksCount++;
+            else if (categoryText.includes('Pengetahuan')) pengetahuanCount++;
+            else if (categoryText.includes('Manual')) manualCount++;
+        }
+    });
+    
+    // Update counts
+    const ebooksCountElem = document.getElementById('ebooks-count');
+    const pengetahuanCountElem = document.getElementById('pengetahuan-count');
+    const manualCountElem = document.getElementById('manual-count');
+    
+    if (ebooksCountElem) ebooksCountElem.textContent = ebooksCount;
+    if (pengetahuanCountElem) pengetahuanCountElem.textContent = pengetahuanCount;
+    if (manualCountElem) manualCountElem.textContent = manualCount;
+});
+
+// Category filter
+function filterCategory(category) {
+    const cards = document.querySelectorAll('.cards-container .card');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    // Update button states
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Filter cards
+    cards.forEach(card => {
+        const cardCategory = card.querySelector('.card-meta .fa-tag')?.parentElement?.textContent.trim();
+        if (category === 'all') {
+            card.style.display = '';
+        } else {
+            if (cardCategory && cardCategory.includes(category.replace('_', ' '))) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+}
+
+function downloadFile(fileId, fileName) {
+    const link = document.createElement('a');
+    link.href = `/download/${fileId}`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
 {% endblock %}

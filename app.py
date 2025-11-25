@@ -256,6 +256,30 @@ def api_search():
     ])
 
 
+# === API untuk Autocomplete ===
+@app.route('/api/autocomplete')
+def api_autocomplete():
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify([])
+    
+    conn = get_db_connection()
+    results = conn.execute(
+        "SELECT name, id, is_directory, mime_type FROM files WHERE name LIKE ? LIMIT 8",
+        (f"%{query}%",)
+    ).fetchall()
+    conn.close()
+    
+    return jsonify([
+        {
+            "name": r['name'],
+            "id": r['id'],
+            "is_directory": r['is_directory']
+        }
+        for r in results
+    ])
+
+
 # === JALANKAN APLIKASI ===
 if __name__ == '__main__':
     # In production the app should be run with a WSGI server (gunicorn).
