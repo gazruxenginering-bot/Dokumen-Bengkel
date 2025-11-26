@@ -1,0 +1,73 @@
+<!-- templates/payment_pending.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="alert alert-warning text-center">
+                <h1>⏳ Payment Processing</h1>
+                <p class="lead">{{ message }}</p>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order Status</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Order ID:</strong></td>
+                            <td><code>{{ order.id }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount:</strong></td>
+                            <td>Rp{{ "{:,.0f}".format(order.amount) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><span class="badge bg-warning">{{ order.status }}</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>{{ order.created_at }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="checkStatus()">
+                    Check Payment Status
+                </button>
+                <a href="/payment/docs/premium" class="btn btn-outline-secondary">
+                    Back
+                </a>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <strong>Note:</strong> Payment status will be updated automatically. 
+                You can also check the status using your Order ID.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function checkStatus() {
+    const orderId = "{{ order.id }}";
+    try {
+        const response = await fetch(`/payment/status/${orderId}`);
+        const data = await response.json();
+        
+        if (data.status === "COMPLETED") {
+            alert("✅ Payment completed! Redirecting...");
+            window.location.href = `/payment/success/${orderId}`;
+        } else {
+            alert(`Payment status: ${data.status}`);
+        }
+    } catch (error) {
+        alert("Error checking status: " + error.message);
+    }
+}
+</script>
+{% endblock %}

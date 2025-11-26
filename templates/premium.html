@@ -1,0 +1,114 @@
+<!-- templates/premium.html - Premium Documents Page -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <h1>🔓 Premium Documents & Services</h1>
+            <p class="lead text-muted">Unlock exclusive access to advanced technical documentation and premium features</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for item in items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.name }}</h5>
+                    <p class="card-text text-muted">{{ item.description }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <h3 class="text-primary">
+                            Rp{{ "{:,.0f}".format(item.price) }}
+                        </h3>
+                        <button class="btn btn-primary btn-sm" 
+                                onclick="initPayment('{{ item.id }}')">
+                            Get Access
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">Instant access after payment</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <input type="hidden" id="productId">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function initPayment(productId) {
+    document.getElementById('productId').value = productId;
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const productId = document.getElementById('productId').value;
+    
+    try {
+        const response = await fetch('/payment/docs/premium', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                product_id: productId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.payment_url) {
+            // Redirect to DANA payment page
+            window.location.href = data.payment_url;
+        } else {
+            alert('Payment initialization failed: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+</script>
+
+<style>
+.card {
+    border-radius: 8px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

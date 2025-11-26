@@ -1,0 +1,62 @@
+<!-- templates/payment_success.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="alert alert-success text-center">
+                <h1>✅ Payment Successful!</h1>
+                <p class="lead">{{ message }}</p>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order Details</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Order ID:</strong></td>
+                            <td><code>{{ order.id }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount:</strong></td>
+                            <td>Rp{{ "{:,.0f}".format(order.amount) }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Product:</strong></td>
+                            <td>{{ order.product_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><span class="badge bg-success">{{ order.status }}</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date:</strong></td>
+                            <td>{{ order.created_at }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="/payment/docs/premium" class="btn btn-primary flex-grow-1">
+                    Back to Premium Documents
+                </a>
+                <a href="/" class="btn btn-outline-primary flex-grow-1">
+                    Home
+                </a>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <strong>Next Steps:</strong>
+                <ul class="mb-0">
+                    <li>Your access has been granted immediately</li>
+                    <li>Check your email for receipt and access details</li>
+                    <li>Download your premium documents from your account</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
