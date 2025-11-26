@@ -1,0 +1,113 @@
+<!-- templates/admin_user_detail.html - User Profile Detail -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>👤 User Profile</h1>
+            <p class="text-muted">{{ data.user.user_email }}</p>
+        </div>
+    </div>
+
+    <!-- User Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Total Orders</h6>
+                    <h3>{{ data.user.total_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Completed Orders</h6>
+                    <h3>{{ data.user.completed_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Total Spent</h6>
+                    <h3>Rp{{ "{:,.0f}".format(data.user.total_spent or 0) }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Last Purchase</h6>
+                    <p>{{ data.user.last_purchase[:10] if data.user.last_purchase else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Order History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in data.orders %}
+                                <tr>
+                                    <td><code>{{ order.id[-8:] }}</code></td>
+                                    <td>{{ order.product_name }}</td>
+                                    <td>Rp{{ "{:,.0f}".format(order.amount) }}</td>
+                                    <td>
+                                        {% if order.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ order.status }}</span>
+                                        {% elif order.status == 'PENDING' %}
+                                        <span class="badge bg-warning">{{ order.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">{{ order.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.created_at }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        No orders found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="/admin/users?password={{ request.args.get('password') }}" class="btn btn-outline-secondary">
+                ← Back to Users
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

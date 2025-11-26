@@ -1,0 +1,140 @@
+<!-- templates/admin_reports.html - Reports & Analytics -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>📈 Reports & Analytics</h1>
+            <p class="text-muted">Detailed revenue and product analysis</p>
+        </div>
+    </div>
+
+    <!-- Revenue Trend -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">💹 Revenue Trend (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div id="revenueChart" style="height: 300px;"></div>
+                    <table class="table table-sm mt-4 mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Orders</th>
+                                <th>Completed</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in revenue_data[:10] %}
+                            <tr>
+                                <td>{{ data.date }}</td>
+                                <td>{{ data.orders }}</td>
+                                <td><span class="badge bg-success">{{ data.completed }}</span></td>
+                                <td>Rp{{ "{:,.0f}".format(data.revenue or 0) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Performance -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🛍️ Product Performance</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Total Orders</th>
+                                    <th>Completed</th>
+                                    <th>Revenue</th>
+                                    <th>Avg Price</th>
+                                    <th>Performance %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set total_revenue = product_sales|sum(attribute='total_revenue') %}
+                                {% for product in product_sales %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td>{{ product.total_orders }}</td>
+                                    <td><span class="badge bg-success">{{ product.completed_orders }}</span></td>
+                                    <td><strong>Rp{{ "{:,.0f}".format(product.total_revenue or 0) }}</strong></td>
+                                    <td>Rp{{ "{:,.0f}".format(product.avg_price or 0) }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            {% set percentage = (product.total_revenue / total_revenue * 100) if total_revenue > 0 else 0 %}
+                                            <div class="progress-bar" style="width: {{ percentage }}%">
+                                                {{ "%.1f"|format(percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="/admin/dashboard?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Dashboard</a>
+                <a href="/admin/users?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Users</a>
+                <a href="/admin/orders?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Orders</a>
+                <a href="/admin/reports?password={{ request.args.get('password') }}" class="btn btn-outline-primary active">Reports</a>
+                <a href="/admin/export/orders.csv?password={{ request.args.get('password') }}" class="btn btn-outline-secondary">📥 Export CSV</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Simple revenue chart
+const ctx = document.getElementById('revenueChart').getContext('2d');
+const data = {{ revenue_data|tojson }};
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: data.map(d => d.date),
+        datasets: [{
+            label: 'Revenue',
+            data: data.map(d => d.revenue),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

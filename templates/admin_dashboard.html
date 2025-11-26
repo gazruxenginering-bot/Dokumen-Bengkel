@@ -1,0 +1,147 @@
+<!-- templates/admin_dashboard.html - Admin Dashboard -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>📊 Admin Dashboard</h1>
+            <p class="text-muted">Payment monitoring & analytics</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Revenue</h6>
+                    <h3>Rp{{ "{:,.0f}".format(stats.total_revenue) }}</h3>
+                    <small>Today: Rp{{ "{:,.0f}".format(stats.today_revenue) }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Users</h6>
+                    <h3>{{ stats.total_users }}</h3>
+                    <small>Active customers</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Completed Orders</h6>
+                    <h3>{{ stats.completed_orders }} / {{ stats.total_orders }}</h3>
+                    <small>{{ stats.conversion_rate }}% conversion</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Avg Order Value</h6>
+                    <h3>Rp{{ "{:,.0f}".format(stats.avg_order_value) }}</h3>
+                    <small>{{ stats.pending_orders }} pending</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Recent Orders</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Email</th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><code>{{ order.id[-8:] }}</code></td>
+                                    <td>{{ order.user_email }}</td>
+                                    <td>{{ order.product_name[:30] }}</td>
+                                    <td>Rp{{ "{:,.0f}".format(order.amount) }}</td>
+                                    <td>
+                                        {% if order.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ order.status }}</span>
+                                        {% elif order.status == 'PENDING' %}
+                                        <span class="badge bg-warning">{{ order.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">{{ order.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.created_at[:10] }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="/admin/orders?password={{ request.args.get('password') }}" class="btn btn-sm btn-outline-primary">
+                        View All Orders →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Sales -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🛍️ Product Sales</h5>
+                </div>
+                <div class="card-body">
+                    {% for product in product_sales %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>{{ product.product_name[:25] }}</strong>
+                            <span class="badge bg-primary">{{ product.completed_orders }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: {% if product.total_revenue %}{{ (product.total_revenue / (product_sales[0].total_revenue or 1)) * 100 }}%{% endif %}"></div>
+                        </div>
+                        <small class="text-muted">Rp{{ "{:,.0f}".format(product.total_revenue or 0) }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="/admin/dashboard?password={{ request.args.get('password') }}" class="btn btn-outline-primary active">Dashboard</a>
+                <a href="/admin/users?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Users</a>
+                <a href="/admin/orders?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Orders</a>
+                <a href="/admin/reports?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Reports</a>
+                <a href="/admin/export/orders.csv?password={{ request.args.get('password') }}" class="btn btn-outline-secondary">📥 Export CSV</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

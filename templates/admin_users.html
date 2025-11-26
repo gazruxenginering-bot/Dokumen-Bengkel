@@ -1,0 +1,110 @@
+<!-- templates/admin_users.html - Users Management -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>👥 Users Management</h1>
+            <p class="text-muted">Monitor all registered users and their purchases</p>
+        </div>
+    </div>
+
+    <!-- Top Customers -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">⭐ Top Customers</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Orders</th>
+                                    <th>Total Spent</th>
+                                    <th>Last Order</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in top_customers %}
+                                <tr>
+                                    <td>{{ customer.user_email }}</td>
+                                    <td><span class="badge bg-info">{{ customer.orders }}</span></td>
+                                    <td><strong>Rp{{ "{:,.0f}".format(customer.total_spent or 0) }}</strong></td>
+                                    <td>{{ customer.last_order[:10] }}</td>
+                                    <td>
+                                        <a href="/admin/user/{{ customer.user_email }}?password={{ request.args.get('password') }}" class="btn btn-sm btn-primary">
+                                            View Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 All Users ({{ users|length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Purchases</th>
+                                    <th>Total Spent</th>
+                                    <th>First Purchase</th>
+                                    <th>Last Purchase</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.user_email }}</td>
+                                    <td>{{ user.purchase_count }}</td>
+                                    <td>Rp{{ "{:,.0f}".format(user.total_spent or 0) }}</td>
+                                    <td>{{ user.first_purchase[:10] if user.first_purchase else '-' }}</td>
+                                    <td>{{ user.last_purchase[:10] if user.last_purchase else '-' }}</td>
+                                    <td>
+                                        <a href="/admin/user/{{ user.user_email }}?password={{ request.args.get('password') }}" class="btn btn-sm btn-outline-primary">
+                                            Detail
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="/admin/dashboard?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Dashboard</a>
+                <a href="/admin/users?password={{ request.args.get('password') }}" class="btn btn-outline-primary active">Users</a>
+                <a href="/admin/orders?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Orders</a>
+                <a href="/admin/reports?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

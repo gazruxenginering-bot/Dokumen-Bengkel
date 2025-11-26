@@ -1,0 +1,98 @@
+<!-- templates/admin_orders.html - Orders Management -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>📋 Orders Management</h1>
+            <p class="text-muted">Monitor all transactions and payments</p>
+        </div>
+    </div>
+
+    <!-- Status Summary -->
+    <div class="row g-4 mb-4">
+        {% for status, data in status_summary.items() %}
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">{{ status }}</h6>
+                    <h3>{{ data.count }}</h3>
+                    <small>Rp{{ "{:,.0f}".format(data.amount) }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">All Orders ({{ orders|length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Email</th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <code>{{ order.id[-12:] }}</code>
+                                    </td>
+                                    <td>
+                                        <a href="/admin/user/{{ order.user_email }}?password={{ request.args.get('password') }}" 
+                                           class="text-decoration-none">
+                                            {{ order.user_email }}
+                                        </a>
+                                    </td>
+                                    <td>{{ order.product_name[:40] }}</td>
+                                    <td><strong>Rp{{ "{:,.0f}".format(order.amount) }}</strong></td>
+                                    <td>
+                                        {% if order.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ order.status }}</span>
+                                        {% elif order.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark">{{ order.status }}</span>
+                                        {% elif order.status == 'FAILED' %}
+                                        <span class="badge bg-danger">{{ order.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ order.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.created_at }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="/admin/dashboard?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Dashboard</a>
+                <a href="/admin/users?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Users</a>
+                <a href="/admin/orders?password={{ request.args.get('password') }}" class="btn btn-outline-primary active">Orders</a>
+                <a href="/admin/reports?password={{ request.args.get('password') }}" class="btn btn-outline-primary">Reports</a>
+                <a href="/admin/export/orders.csv?password={{ request.args.get('password') }}" class="btn btn-outline-secondary">📥 Export CSV</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
